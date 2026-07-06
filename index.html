@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THIỆP MỜI DỰ LỄ TỐT NGHIỆP</title>
+    <link rel="icon" type="image/png" href="anh/anhmau3.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #fdfaf6;       
+            --text-main: #5a3d28;      
+            --text-dark: #3a2516;
+            --accent-gold: #b89244;    
+            --env-color: #bcd4e6;      
+            --env-dark: #99badd;       
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #cfe2f3; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            perspective: 2000px;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* KHUNG CHỨA TOÀN BỘ */
+        .stage {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 400px; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            transition: max-width 0.6s ease, height 0.6s ease;
+            margin-top: 20px;
+        }
+
+        /* SỬA HIỆU ỨNG: Tự động nhả height để ruột thiệp kéo giãn tự nhiên trên Mobile */
+        .stage.active {
+            height: auto;
+        }
+
+        /* PHONG BÌ 3D */
+        .envelope-box {
+            position: absolute;
+            width: 100%;
+            height: 350px;
+            background-color: var(--env-dark);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 20px 40px rgba(43, 92, 143, 0.2);
+            z-index: 5;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease, opacity 0.4s ease, z-index 0.6s;
+            top: 0;
+        }
+
+        .envelope-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--env-color);
+            clip-path: polygon(0 0, 50% 50%, 100% 0, 100% 100%, 0 100%);
+            border-radius: 0 0 12px 12px;
+            z-index: 7;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--env-color);
+            clip-path: polygon(0 0, 50% 48%, 100% 0);
+            transform-origin: top center;
+            z-index: 8;
+            transition: transform 0.4s ease;
+        }
+
+        .open-hint {
+            position: absolute;
+            top: 70%; left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+            z-index: 9;
+            color: #2b5c8f;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 10px 20px rgba(43, 92, 143, 0.15);
+            animation: hintPulse 2s infinite ease-in-out;
+            white-space: nowrap;
+        }
+
+        @keyframes hintPulse {
+            0%, 100% { transform: translate3d(-50%, -50%, 0) scale(1); }
+            50% { transform: translate3d(-50%, -50%, 0) scale(1.05); }
+        }
+
+        /* SỬA HIỆU ỨNG: Khi bấm mở, ẩn phong bì đi và đẩy ruột thiệp lên hàng đầu mượt mà */
+        .stage.active .envelope-flap { transform: rotateX(180deg); }
+        .stage.active .envelope-box { transform: translate3d(0, -40px, 0) scale(0.8); opacity: 0; z-index: 1; pointer-events: none; }
+        
+        .stage.active .invitation-card { 
+            position: relative; /* Đổi sang relative để đẩy giao diện dọc co giãn tự do trên điện thoại */
+            opacity: 1; 
+            transform: translate3d(0, 0, 0) scale(1); 
+            z-index: 10; 
+            pointer-events: auto; 
+        }
+
+        /* RUỘT THIỆP MỞ ĐÔI */
+        .invitation-card {
+            background-color: var(--bg-color);
+            width: 100%;
+            border-radius: 16px;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 2;
+            display: flex;
+            flex-direction: column; 
+            box-shadow: 0 15px 45px rgba(90, 61, 40, 0.15);
+            opacity: 0;
+            transform: translate3d(0, 40px, 0) scale(0.95);
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* TRANG CON BÊN TRONG */
+        .bifold-page {
+            width: 100%;
+            padding: 35px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: var(--text-main);
+        }
+
+        /* TRANG TRÁI */
+        .page-left {
+            border-bottom: 1px dashed rgba(90, 61, 40, 0.2); 
+            background-image: radial-gradient(circle at top left, #fff5eb 0%, transparent 60%);
+        }
+
+        /* TRANG PHẢI */
+        .page-right {
+            background-image: radial-gradient(circle at bottom right, #fff5eb 0%, transparent 60%);
+        }
+
+        .grad-cap-icon {
+            width: 70px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .guest-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8c7361;
+            margin-top: 10px;
+        }
+
+        .guest-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 5px 0;
+            border-bottom: 1px solid rgba(90, 61, 40, 0.15);
+            padding-bottom: 5px;
+            display: inline-block;
+            max-width: 90%;
+        }
+
+        .desc-text {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 10px 0;
+            color: #6e523d;
+        }
+
+        /* LỊCH THỜI GIAN THEO MẪU */
+        .date-badge-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .date-side {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            border-top: 2px solid var(--text-main);
+            border-bottom: 2px solid var(--text-main);
+            padding: 4px 6px;
+            line-height: 1.3;
+        }
+
+        .date-main-num {
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: #802c2c; 
+            line-height: 1;
+        }
+
+        .location-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        .location-detail {
+            font-size: 0.8rem;
+            color: #7d6553;
+            max-width: 280px;
+            line-height: 1.4;
+            margin-top: 4px;
+        }
+
+        .btn-maps {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 18px;
+            background-color: var(--text-main);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* VÒNG HOA TRANG PHẢI */
+        .wreath-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wreath-svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+
+        .avatar-inside-wreath {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            overflow: hidden;
+            z-index: 2;
+            background: #fffdfa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .avatar-inside-wreath img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-inside-wreath .placeholder-icon {
+            font-size: 2.8rem;
+            color: var(--accent-gold);
+        }
+
+        .right-title-happy {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2.6rem;
+            color: var(--accent-gold);
+            line-height: 1;
+            margin-top: 5px;
+        }
+
+        .right-title-class {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .quote-text {
+            font-size: 0.75rem;
+            font-style: italic;
+            color: #8c7361;
+            line-height: 1.5;
+            max-width: 280px;
+            margin-top: 15px;
+            border-top: 1px solid rgba(90, 61, 40, 0.1);
+            padding-top: 10px;
+        }
+
+        .footer-contact {
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #8c7361;
+            line-height: 1.4;
+        }
+
+        .trail-dot {
+            position: fixed; width: 6px; height: 6px; border-radius: 50%;
+            pointer-events: none; z-index: 9999; transform: translate3d(-50%, -50%, 0);
+            will-change: transform, opacity;
+        }
+
+        /* ================= GIAO DIỆN MÁY TÍNH (DESKTOP) ================= */
+        @media (min-width: 768px) {
+            .stage {
+                height: 520px;
+            }
+            .stage.active { 
+                max-width: 920px; 
+                height: 540px;
+            }
+
+            /* SỬA HIỆU ỨNG: Trên PC giữ nguyên absolute để giữ hiệu ứng lật mở trang ngang sang chảnh */
+            .stage.active .invitation-card {
+                position: absolute; 
+                flex-direction: row; 
+                width: 900px; 
+                height: 540px;
+            }
+
+            .envelope-box {
+                height: 480px;
+            }
+
+            .bifold-page {
+                width: 50%; 
+                height: 100%;
+                justify-content: center;
+                padding: 40px;
+            }
+
+            .page-left {
+                border-bottom: none;
+                border-right: 1px dashed rgba(90, 61, 40, 0.25); 
+            }
+
+            .section-title { font-size: 2.5rem; }
+            .wreath-container { width: 250px; height: 250px; }
+            .avatar-inside-wreath { width: 165px; height: 165px; }
+            .right-title-happy { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="stage" id="stage">
+        
+        <div class="envelope-box" onclick="openCard()">
+            <div class="envelope-flap"></div>
+            <div class="open-hint">CLICK TẠI ĐÂY</div>
+        </div>
+
+        <div class="invitation-card" id="card">
+            
+            <div class="bifold-page page-left">
+                <svg class="grad-cap-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#3a2516"/>
+                    <path d="M2 7V14M17 11.5V17.5C17 19 14.5 20.5 12 20.5C9.5 20.5 7 19 7 17.5V11.5" stroke="#3a2516" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22 7V15.5C22 16 21.5 16.5 21 16.5C20.5 16.5 20 16 20 15.5V8" stroke="#b89244" stroke-width="1.5"/>
+                    <circle cx="20" cy="16.5" r="1.5" fill="#b89244"/>
+                </svg>
+
+                <h2 class="section-title">Trân trọng kính mời</h2>
+                        <div class="guest-name" id="guestName">anh/chị/em/bạn bè thân thương</div>
+                <div class="guest-title">Tới tham dự buổi lễ tốt nghiệp</div>
+        
+                
+                <div class="desc-text">
+                    Sự hiện diện của mọi người chính là niềm vinh hạnh to lớn và là mảnh ghép ý nghĩa giúp ngày vui của Bình thêm trọn vẹn.
+                </div>
+
+                <div class="date-badge-box">
+                    <div class="date-side">Thứ Hai<br>09 Giờ 30</div>
+                    <div class="date-main-num">13</div>
+                    <div class="date-side">Tháng 07<br>Năm 2026</div>
+                </div>
+
+                <div class="location-title">Trường Đại học Nha Trang</div>
+                <div class="location-detail">02 Nguyễn Đình Chiểu, phường Bắc Nha Trang, Khánh Hoà</div>
+                
+                <a href="https://maps.google.com/?q=Trường+Đại+học+Nha+Trang" target="_blank" class="btn-maps">🗺️ Xem đường đi</a>
+            </div>
+
+            <div class="bifold-page page-right">
+                
+                <div class="wreath-container">
+                    <svg class="wreath-svg" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#a7c5df" />
+                                <stop offset="100%" stop-color="#5a3d28" stop-opacity="0.3"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#8c7361" stroke-width="0.5" stroke-dasharray="2 3"/>
+                        <circle cx="50" cy="50" r="39" fill="none" stroke="#b89244" stroke-width="0.4" opacity="0.6"/>
+                        <path d="M50 5 C55 12, 45 15, 50 22 C45 18, 42 10, 50 5" fill="url(#leafGrad)"/>
+                        <path d="M92 45 C85 50, 82 40, 75 45 C80 38, 88 38, 92 45" fill="url(#leafGrad)"/>
+                        <path d="M50 95 C45 88, 55 85, 50 78 C55 82, 58 90, 50 95" fill="url(#leafGrad)"/>
+                        <path d="M8 55 C15 50, 18 60, 25 55 C20 62, 12 62, 8 55" fill="url(#leafGrad)"/>
+                        <circle cx="24" cy="26" r="2" fill="#802c2c"/>
+                        <circle cx="78" cy="24" r="2.5" fill="#b89244"/>
+                        <circle cx="76" cy="76" r="2" fill="#802c2c"/>
+                        <circle cx="22" cy="72" r="3" fill="#b89244"/>
+                    </svg>
+
+                    <div class="avatar-inside-wreath">
+                        <img src="anh/anhmau.png" alt="Quốc Huy" onerror="this.style.display='none'; document.getElementById('alt-ico').style.display='block';">
+                        <div id="alt-ico" class="placeholder-icon" style="display: none;">🎓</div>
+                    </div>
+                </div>
+
+                <div class="right-title-happy">Happy Graduation</div>
+                <div class="right-title-class">CHÂU NGUYỄN THÁI BÌNH</div>
+
+                <p class="quote-text">
+                    "Chặng đường bốn năm đại học khép lại, mở ra những hành trình mới đầy hoài bão. Cảm ơn bạn vì đã luôn là một phần ký ức tươi đẹp trong những năm tháng thanh xuân này."
+                </p>
+
+                <div class="footer-contact">
+                    <div><strong>Facebook: </strong>Châu Bình</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const stage = document.getElementById('stage');
+        const card = document.getElementById('card');
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const bgMusic = new Audio('audio/VO-TAY-EM-XINH-SAY-HI-Phuong-Ly-cut.mp3');
+        bgMusic.loop = true; 
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let particles = [];
+        const colors = ['#802c2c', '#b89244', '#bcd4e6', '#99badd', '#ffffff'];
+        let animationStarted = false;
+
+        function openCard() {
+            stage.classList.add('active');
+            
+            if (!animationStarted) {
+                animationStarted = true;
+
+                bgMusic.play().catch(error => {
+                    console.log("Trình duyệt chặn phát âm thanh:", error);
+                });
+                
+                setTimeout(() => {
+                    createConfettiShower(); 
+                    createRandomConfettiBurst(); 
+                    tick();
+                }, 400);
+
+                setInterval(() => {
+                    createRandomConfettiBurst();
+                }, 700);
+            }
+        }
+
+        function createConfettiShower() {
+            const particleCount = window.innerWidth > 768 ? 200 : 100;
+            const originX = window.innerWidth / 2;
+            const originY = window.innerHeight / 2 - 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: originX,
+                    y: originY,
+                    size: Math.random() * 6 + 4, 
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedX: (Math.random() * 16 - 8), 
+                    speedY: (Math.random() * -20 - 6),  
+                    gravity: 0.25, 
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 6 - 3,
+                    opacity: 1
+                });
+            }
+        }
+
+        function createRandomConfettiBurst() {
+            if(particles.length > 200) return; 
+            const particleCount = Math.floor(Math.random() * 15) + 35; 
+            const originX = Math.random() * window.innerWidth;
+            const originY = Math.random() * (window.innerHeight * 0.4) + 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: originX,
+                    y: originY,
+                    size: Math.random() * 5 + 3,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedX: (Math.random() * 12 - 6),
+                    speedY: (Math.random() * 14 - 7) - 3, 
+                    gravity: 0.25,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 6 - 3,
+                    opacity: 1
+                });
+            }
+        }
+
+        function tick() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.speedY += p.gravity;
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.rotation += p.rotationSpeed;
+                p.opacity -= 0.015; 
+
+                if (p.opacity <= 0 || p.y > window.innerHeight) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+                ctx.globalAlpha = p.opacity;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+            }
+            requestAnimationFrame(tick);
+        }
+
+        let lastTrailTime = 0;
+        document.addEventListener('mousemove', (e) => {
+            const now = performance.now();
+            if (now - lastTrailTime < 35) return; 
+            lastTrailTime = now;
+
+            const dot = document.createElement('div');
+            dot.classList.add('trail-dot');
+            dot.style.backgroundColor = Math.random() > 0.5 ? 'var(--accent-gold)' : '#802c2c';
+            
+            dot.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+            dot.style.opacity = '0.9';
+            dot.style.transition = 'transform 0.5s linear, opacity 0.5s linear';
+
+            document.body.appendChild(dot);
+
+            requestAnimationFrame(() => {
+                dot.style.transform = `translate3d(${e.clientX + (Math.random()*16-8)}px, ${e.clientY + 25}px, 0) scale(0)`;
+                dot.style.opacity = '0';
+            });
+
+            setTimeout(() => { dot.remove(); }, 500);
+
+            if (window.innerWidth > 768 && stage.classList.contains('active')) {
+                const xAxis = (window.innerWidth / 2 - e.clientX) / 60;
+                const yAxis = (window.innerHeight / 2 - e.clientY) / 60;
+                card.style.transform = `rotateY(${xAxis}deg) rotateX(${-yAxis}deg)`;
+            }
+        });
+
+        document.addEventListener('mouseleave', () => {
+            if (stage.classList.contains('active')) {
+                card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const guestName = urlParams.get('name');
+            if (guestName) {
+                document.getElementById('guestName').innerText = decodeURIComponent(guestName);
+            }
+        });
+    </script>
+</body>
+</html>
