@@ -49,67 +49,73 @@
         .stage {
             position: relative;
             width: 100%;
-            max-width: 450px;
-            height: 400px; 
+            max-width: 620px; 
+            height: 430px;    
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            transition: max-width 0.6s ease, height 0.6s ease;
-            margin-top: 20px;
+            transition: max-width 0.8s cubic-bezier(0.25, 1, 0.5, 1), height 0.8s ease;
+            margin-top: 40px;
+            overflow: hidden; /* Giữ kín thiệp bên trong lúc chưa mở */
         }
 
-        /* SỬA HIỆU ỨNG: Tự động nhả height để ruột thiệp kéo giãn tự nhiên trên Mobile */
         .stage.active {
             height: auto;
+            overflow: visible; /* Thả tự do khi thiệp trồi lên */
         }
 
-        /* PHONG BÌ 3D */
+        /* PHONG BÌ THƯ */
         .envelope-box {
             position: absolute;
             width: 100%;
-            height: 350px;
+            max-width: 620px; /* Khóa kích thước để không phình to khi stage mở rộng */
+            left: 0; right: 0; margin: 0 auto; /* Luôn giữ phong bì ở chính giữa */
+            height: 410px; 
             background-color: var(--env-dark);
             border-radius: 0 0 12px 12px;
-            box-shadow: 0 20px 40px rgba(43, 92, 143, 0.2);
+            box-shadow: 0 25px 50px rgba(43, 92, 143, 0.25);
             z-index: 5;
             cursor: pointer;
             transform-style: preserve-3d;
-            transition: transform 0.6s ease, opacity 0.4s ease, z-index 0.6s;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s, opacity 1s ease 0.5s, z-index 0.8s;
             top: 0;
         }
 
+        /* Thân trước phong bì */
         .envelope-box::before {
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--env-color);
-            clip-path: polygon(0 0, 50% 50%, 100% 0, 100% 100%, 0 100%);
+            clip-path: polygon(0 0, 50% 50%, 100% 0, 100% 100%, 0 100%); 
             border-radius: 0 0 12px 12px;
-            z-index: 7;
+            z-index: 7; 
         }
 
+        /* NẮP PHONG BÌ */
         .envelope-flap {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--env-color);
-            clip-path: polygon(0 0, 50% 48%, 100% 0);
-            transform-origin: top center;
+            clip-path: polygon(0 0, 50% 50%, 100% 0);
+            transform-origin: center top;
             z-index: 8;
-            transition: transform 0.4s ease;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .open-hint {
             position: absolute;
-            top: 70%; left: 50%;
+            top: 75%; 
+            left: 50%;
             transform: translate3d(-50%, -50%, 0);
             z-index: 9;
             color: #2b5c8f;
             font-weight: 700;
             letter-spacing: 2px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
             background: white;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border-radius: 30px;
             box-shadow: 0 10px 20px rgba(43, 92, 143, 0.15);
             animation: hintPulse 2s infinite ease-in-out;
@@ -121,37 +127,45 @@
             50% { transform: translate3d(-50%, -50%, 0) scale(1.05); }
         }
 
-        /* SỬA HIỆU ỨNG: Khi bấm mở, ẩn phong bì đi và đẩy ruột thiệp lên hàng đầu mượt mà */
-        .stage.active .envelope-flap { transform: rotateX(180deg); }
-        .stage.active .envelope-box { transform: translate3d(0, -40px, 0) scale(0.8); opacity: 0; z-index: 1; pointer-events: none; }
+        /* HIỆU ỨNG ĐỒNG BỘ */
+        .stage.active .envelope-flap { 
+            transform: rotateX(180deg) translateY(-20px); 
+        }
+        
+        .stage.active .envelope-box { 
+            transform: translate3d(0, 130%, 0) scale(1); 
+            opacity: 0; 
+            z-index: 1; 
+            pointer-events: none; 
+        }
         
         .stage.active .invitation-card { 
-            position: relative; /* Đổi sang relative để đẩy giao diện dọc co giãn tự do trên điện thoại */
+            position: relative; 
             opacity: 1; 
             transform: translate3d(0, 0, 0) scale(1); 
             z-index: 10; 
             pointer-events: auto; 
         }
 
-        /* RUỘT THIỆP MỞ ĐÔI */
+        /* RUỘT THIỆP */
         .invitation-card {
             background-color: var(--bg-color);
             width: 100%;
             border-radius: 16px;
             position: absolute;
-            top: 0; left: 0;
-            z-index: 2;
+            top: 40px; left: 0;
+            z-index: 4; 
             display: flex;
             flex-direction: column; 
             box-shadow: 0 15px 45px rgba(90, 61, 40, 0.15);
             opacity: 0;
-            transform: translate3d(0, 40px, 0) scale(0.95);
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+            transform: translate3d(0, 200px, 0) scale(0.9); 
+            transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, opacity 0.8s ease 0.3s;
             pointer-events: none;
             overflow: hidden;
         }
 
-        /* TRANG CON BÊN TRONG */
+        /* TRANG CON BÊN TRONG THIỆP */
         .bifold-page {
             width: 100%;
             padding: 35px 20px;
@@ -162,13 +176,11 @@
             color: var(--text-main);
         }
 
-        /* TRANG TRÁI */
         .page-left {
             border-bottom: 1px dashed rgba(90, 61, 40, 0.2); 
             background-image: radial-gradient(circle at top left, #fff5eb 0%, transparent 60%);
         }
 
-        /* TRANG PHẢI */
         .page-right {
             background-image: radial-gradient(circle at bottom right, #fff5eb 0%, transparent 60%);
         }
@@ -212,7 +224,6 @@
             color: #6e523d;
         }
 
-        /* LỊCH THỜI GIAN THEO MẪU */
         .date-badge-box {
             display: flex;
             align-items: center;
@@ -267,7 +278,6 @@
             font-weight: 600;
         }
 
-        /* VÒNG HOA TRANG PHẢI */
         .wreath-container {
             position: relative;
             width: 220px;
@@ -353,23 +363,25 @@
         /* ================= GIAO DIỆN MÁY TÍNH (DESKTOP) ================= */
         @media (min-width: 768px) {
             .stage {
-                height: 520px;
+                max-width: 900px; /* Chỉnh khung bằng chiều rộng thiệp */
+                height: 540px;    /* Chỉnh khung bằng chiều cao thiệp */
             }
             .stage.active { 
-                max-width: 920px; 
+                max-width: 900px; 
                 height: 540px;
             }
 
-            /* SỬA HIỆU ỨNG: Trên PC giữ nguyên absolute để giữ hiệu ứng lật mở trang ngang sang chảnh */
             .stage.active .invitation-card {
                 position: absolute; 
                 flex-direction: row; 
-                width: 900px; 
-                height: 540px;
+                width: 100%; 
+                height: 100%;
+                top: 0;
             }
 
             .envelope-box {
-                height: 480px;
+                max-width: 900px; /* Kéo rộng phong bì bằng thiệp */
+                height: 540px;    /* Kéo dài phong bì bằng thiệp */
             }
 
             .bifold-page {
@@ -413,22 +425,21 @@
                 </svg>
 
                 <h2 class="section-title">Trân trọng kính mời</h2>
-                        <div class="guest-name" id="guestName">anh/chị/em/bạn bè thân thương</div>
+                <div class="guest-name" id="guestName">Anh/Chị yêu quý</div>
                 <div class="guest-title">Tới tham dự buổi lễ tốt nghiệp</div>
         
-                
                 <div class="desc-text">
-                    Sự hiện diện của mọi người chính là niềm vinh hạnh to lớn và là mảnh ghép ý nghĩa giúp ngày vui của Bình thêm trọn vẹn.
+                    Sự hiện diện của anh/chị trong ngày lễ tốt nghiệp tới đây chính là món quà tuyệt vời nhất đối với em.
                 </div>
 
                 <div class="date-badge-box">
-                    <div class="date-side">Thứ Hai<br>09 Giờ 30</div>
+                    <div class="date-side">Thứ Hai<br>10h00</div>
                     <div class="date-main-num">13</div>
                     <div class="date-side">Tháng 07<br>Năm 2026</div>
                 </div>
 
                 <div class="location-title">Trường Đại học Nha Trang</div>
-                <div class="location-detail">02 Nguyễn Đình Chiểu, phường Bắc Nha Trang, Khánh Hoà</div>
+                <div class="location-detail">02 Nguyễn Đình Chiểu, phường Vĩnh Thọ, Nha Trang, Khánh Hoà</div>
                 
                 <a href="https://maps.google.com/?q=Trường+Đại+học+Nha+Trang" target="_blank" class="btn-maps">🗺️ Xem đường đi</a>
             </div>
@@ -456,7 +467,7 @@
                     </svg>
 
                     <div class="avatar-inside-wreath">
-                        <img src="anh/anhmau.png" alt="Quốc Huy" onerror="this.style.display='none'; document.getElementById('alt-ico').style.display='block';">
+                        <img src="anh/08f8884f-ed8a-4ca8-a6c0-1c6015076789.jpg" alt="ChauBinh" onerror="this.style.display='none'; document.getElementById('alt-ico').style.display='block';">
                         <div id="alt-ico" class="placeholder-icon" style="display: none;">🎓</div>
                     </div>
                 </div>
@@ -470,11 +481,10 @@
 
                 <div class="footer-contact">
                     <div><strong>Facebook: </strong>Châu Bình</div>
+                    <div><strong>SĐT: </strong>0367412206</div>
                 </div>
             </div>
-
         </div>
-
     </div>
 
     <script>
